@@ -30,9 +30,14 @@ pub struct SystemMetrics {
 #[derive(Serialize, Clone, Debug)]
 pub struct CpuInfo {
     pub global_usage: f32,
-    pub cores: Vec<f32>,
+    pub cores_usage: Vec<f32>,
+    pub cores_freq: Vec<u64>,
+    pub cores_temp: Vec<f32>,
     pub brand: String,
     pub physical_core_count: usize,
+    pub global_temp: f32,
+    pub global_freq: f32, // Average GHz
+    pub power_w: f32,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -141,6 +146,51 @@ fn get_sysfs_gpu_info() -> Option<GpuInfo> {
     None
 }
 
+fn get_cpu_temp() -> (f32, Vec<f32>) {
+    let mut global_temp = 0.0;
+    let mut cores_temp = Vec::new();
+
+    // Look for k10temp (AMD) or coretemp (Intel)
+    if let Ok(entries) = fs::read_dir("/sys/class/hwmon") {
+        for entry in entries.flatten() {
+            if let Ok(name) = fs::read_to_string(entry.path().join("name")) {
+                let name = name.trim();
+                if name == "k10temp" || name == "coretemp" {
+                    // Try to get Tctl or package temp as global
+                    if let Ok(temp) = fs::read_to_string(entry.path().join("temp1_input")) {
+                        global_temp = temp.trim().parse::<f32>().unwrap_or(0.0) / 1000.0;
+                    }
+                    
+                    // Try to get individual core temps if available (temp2, temp3...)
+                    let mut i = 2;
+                    while let Ok(temp) = fs::read_to_string(entry.path().join(format!("temp{}_input", i))) {
+                        cores_temp.push(temp.trim().parse::<f32>().unwrap_or(0.0) / 1000.0);
+                        i += 1;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    (global_temp, cores_temp)
+}
+
+fn get_cpu_frequencies() -> Vec<u64> {
+    let mut freqs = Vec::new();
+    if let Ok(contents) = fs::read_to_string("/proc/cpuinfo") {
+        for line in contents.lines() {
+            if line.starts_with("cpu MHz") {
+                if let Some(mhz_str) = line.split(':').nth(1) {
+                    if let Ok(mhz) = mhz_str.trim().parse::<f32>() {
+                        freqs.push(mhz as u64);
+                    }
+                }
+            }
+        }
+    }
+    freqs
+}
+
 struct AppState {
     tx: broadcast::Sender<SystemMetrics>,
 }
@@ -171,12 +221,36 @@ async fn main() {
             // CPU
             let cpus = sys.cpus();
             let global_usage = sys.global_cpu_usage();
-            let mut cores = Vec::new();
+            let mut cores_usage = Vec::new();
             for cpu in cpus {
-                cores.push(cpu.cpu_usage());
+                cores_usage.push(cpu.cpu_usage());
             }
             let brand = cpus.first().map(|c| c.brand().to_string()).unwrap_or_else(|| "Unknown".to_string());
             let physical_core_count = System::physical_core_count().unwrap_or(0);
+            
+            let (global_temp, cores_temp) = get_cpu_temp();
+            let cores_freq = get_cpu_frequencies();
+            let avg_freq = if !cores_freq.is_empty() {
+                (cores_freq.iter().sum::<u64>() as f32 / cores_freq.len() as f32) / 1000.0
+            } else {
+                0.0
+            };
+
+            // Power estimation (Very basic: base + load-dependant)
+            // Typical 3800X TDP is 105W, idle ~30W
+            let power_w = 30.0 + (global_usage / 100.0 * 75.0);
+
+            let cpu_info = CpuInfo {
+                global_usage,
+                cores_usage,
+                cores_freq,
+                cores_temp,
+                brand,
+                physical_core_count,
+                global_temp,
+                global_freq: avg_freq,
+                power_w,
+            };
 
             // MEM
             let mem = MemInfo {
@@ -275,12 +349,7 @@ async fn main() {
                 os_version,
                 hostname,
                 uptime,
-                cpu: CpuInfo {
-                    global_usage,
-                    cores,
-                    brand,
-                    physical_core_count,
-                },
+                cpu: cpu_info,
                 mem,
                 net: NetInfo { rx_bytes, tx_bytes },
                 gpu: gpu_info,

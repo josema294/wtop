@@ -114,18 +114,26 @@
                 <span id="cpu-name" class="text-[10px] text-b_muted truncate ml-2 max-w-[150px]"></span>
             </div>
             <div class="panel-content p-4 flex flex-col gap-4">
-                <div class="flex justify-between items-end">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                     <div>
-                        <span class="text-b_muted">Load</span>
-                        <div id="cpu-load" class="text-2xl text-b_accent_yellow font-bold mt-1">0.0%</div>
+                        <span class="text-b_muted text-xs">Load</span>
+                        <div id="cpu-load" class="text-xl sm:text-2xl text-b_accent_yellow font-bold mt-1">0.0%</div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-b_muted">Cores</span>
-                        <div id="cpu-cores-count" class="text-lg text-b_text mt-1">0</div>
+                    <div>
+                        <span class="text-b_muted text-xs">Avg Freq</span>
+                        <div id="cpu-freq" class="text-xl sm:text-2xl text-b_accent_cyan font-bold mt-1">0.0 GHz</div>
+                    </div>
+                    <div>
+                        <span class="text-b_muted text-xs">Temp</span>
+                        <div id="cpu-temp" class="text-xl sm:text-2xl text-b_accent_red font-bold mt-1">0°C</div>
+                    </div>
+                    <div>
+                        <span class="text-b_muted text-xs">Power</span>
+                        <div id="cpu-power" class="text-xl sm:text-2xl text-b_accent_green font-bold mt-1">0W</div>
                     </div>
                 </div>
                 <!-- Cores Container -->
-                <div id="cores-container" class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+                <div id="cores-container" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-2">
                     <!-- Dynamic Cores -->
                 </div>
             </div>
@@ -405,17 +413,23 @@
             // CPU Info
             el('cpu-name').textContent = data.cpu.brand;
             el('cpu-load').textContent = data.cpu.global_usage.toFixed(1) + '%';
-            el('cpu-cores-count').textContent = data.cpu.physical_core_count;
+            el('cpu-freq').textContent = data.cpu.global_freq.toFixed(2) + ' GHz';
+            el('cpu-temp').textContent = Math.round(data.cpu.global_temp) + '°C';
+            el('cpu-power').textContent = Math.round(data.cpu.power_w) + 'W';
 
             const coresContainer = el('cores-container');
-            if (coresContainer.children.length !== data.cpu.cores.length) {
+            if (coresContainer.children.length !== data.cpu.cores_usage.length) {
                 coresContainer.innerHTML = '';
-                data.cpu.cores.forEach((load, i) => {
+                data.cpu.cores_usage.forEach((load, i) => {
                     coresContainer.insertAdjacentHTML('beforeend', `
                         <div class="flex flex-col text-[10px] mt-1">
                             <div class="flex justify-between text-b_muted mb-0.5">
-                                <span>Core ${i}</span>
-                                <span id="core-val-${i}" class="text-b_accent_green">${load.toFixed(1)}%</span>
+                                <span class="font-bold text-b_text">Core ${i}</span>
+                                <div class="flex gap-2">
+                                    <span id="core-freq-${i}" class="text-b_accent_cyan">0 MHz</span>
+                                    <span id="core-temp-${i}" class="text-b_accent_red">0°C</span>
+                                    <span id="core-val-${i}" class="text-b_accent_green font-bold">${load.toFixed(1)}%</span>
+                                </div>
                             </div>
                             <div class="w-full h-1.5 bg-b_bg rounded-full overflow-hidden">
                                 <div id="core-bar-${i}" class="h-full progress-grad transition-all duration-300" style="width: ${load}%"></div>
@@ -424,9 +438,15 @@
                     `);
                 });
             } else {
-                data.cpu.cores.forEach((load, i) => {
+                data.cpu.cores_usage.forEach((load, i) => {
                     el(`core-val-${i}`).textContent = load.toFixed(1) + '%';
                     el(`core-bar-${i}`).style.width = Math.min(load, 100) + '%';
+                    if (data.cpu.cores_freq && data.cpu.cores_freq[i]) {
+                        el(`core-freq-${i}`).textContent = data.cpu.cores_freq[i] + ' MHz';
+                    }
+                    if (data.cpu.cores_temp && data.cpu.cores_temp[i]) {
+                        el(`core-temp-${i}`).textContent = Math.round(data.cpu.cores_temp[i]) + '°C';
+                    }
                 });
             }
 
