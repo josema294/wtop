@@ -320,10 +320,19 @@
         // State
         let sortKey = 'cpu_usage';
         let sortOrder = -1; // -1 for desc, 1 for asc
+        let pinnedPid = null;
 
         // Interaction
         const togglePanel = (id) => {
             el(id).classList.toggle('panel-minimized');
+        };
+
+        const togglePin = (pid) => {
+            if (pinnedPid === pid) {
+                pinnedPid = null;
+            } else {
+                pinnedPid = pid;
+            }
         };
 
         const setSort = (key) => {
@@ -478,6 +487,10 @@
 
             // Apply Client-side sorting
             const sortedProcesses = [...data.processes].sort((a, b) => {
+                // Pinning logic: pinned process always first
+                if (a.pid === pinnedPid) return -1;
+                if (b.pid === pinnedPid) return 1;
+
                 let valA = a[sortKey];
                 let valB = b[sortKey];
 
@@ -488,9 +501,16 @@
             });
 
             sortedProcesses.forEach(p => {
+                const isPinned = p.pid === pinnedPid;
+                const rowClass = isPinned
+                    ? 'bg-b_accent_magenta/20 border-b_accent_magenta/40'
+                    : 'hover:bg-[#414868]/30 border-[#414868]/30';
+
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-[#414868]/30 transition-colors border-b border-[#414868]/30 border-dashed">
-                        <td class="px-3 py-1.5 text-b_accent_yellow">${p.pid}</td>
+                    <tr class="transition-colors border-b border-dashed cursor-pointer ${rowClass}" onclick="togglePin(${p.pid})">
+                        <td class="px-3 py-1.5 text-b_accent_yellow flex items-center gap-1">
+                            ${isPinned ? '📌' : ''} ${p.pid}
+                        </td>
                         <td class="px-3 py-1.5 text-b_muted">${p.user}</td>
                         <td class="px-3 py-1.5 font-bold">${p.cpu_usage.toFixed(1)}%</td>
                         <td class="px-3 py-1.5">${formatBytes(p.mem_usage)}</td>
