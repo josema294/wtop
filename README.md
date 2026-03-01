@@ -1,14 +1,14 @@
-# 🚀 Monitorizer (Rust Edition)
+# 🚀 wtop (Rust Edition)
 
 A high-performance, real-time system monitor inspired by **BTOP**, rebuilt for the web using **Rust** and **Tailwind CSS**.
 
-![Monitorizer Dashboard](./assets/demo.webp)
+![wtop Dashboard](./assets/demo.webp)
 
 ## 🌟 Overview
 
-**Monitorizer** is a terminal-aesthetic web application built with **Rust** to ensure **maximum efficiency and minimal resource footprint**. Designed to be lightweight, it provides real-time system insights without compromising your computer's performance.
+**wtop** is a terminal-aesthetic web application built with **Rust** to ensure **maximum efficiency and minimal resource footprint**. Designed to be lightweight, it provides real-time system insights without compromising your computer's performance.
 
-### Why use Monitorizer?
+### Why use wtop?
 *   **Built for Efficiency**: Leverages the memory safety and speed of Rust to achieve peak performance, ensuring the monitoring tool itself doesn't steal valuable cycles from your heavy workloads (like training models or gaming).
 *   **AI Training Monitoring**: Keep an eye on your GPU VRAM and Power consumption while training models from your living room or kitchen using your smartphone.
 *   **Dual Screen for Tablet**: Turn your tablet into a dedicated system monitoring screen without plugging in extra monitors to your GPU.
@@ -36,8 +36,8 @@ A high-performance, real-time system monitor inspired by **BTOP**, rebuilt for t
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/youruser/monitorizer.git
-    cd monitorizer
+    git clone https://github.com/youruser/wtop.git
+    cd wtop
     ```
 
 2.  **Run the application**:

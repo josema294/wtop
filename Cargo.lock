@@ -396,21 +396,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "monitorizer"
-version = "0.1.0"
-dependencies = [
- "axum",
- "futures",
- "nvml-wrapper",
- "serde",
- "serde_json",
- "sysinfo",
- "tokio",
- "tokio-stream",
- "tower-http",
-]
-
-[[package]]
 name = "ntapi"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1078,6 +1063,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "wtop"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "futures",
+ "nvml-wrapper",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tokio",
+ "tokio-stream",
+ "tower-http",
 ]
 
 [[package]]

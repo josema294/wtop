@@ -1,7 +1,15 @@
 [package]
-name = "monitorizer"
+name = "wtop"
 version = "0.1.0"
 edition = "2024"
+authors = ["Jose Maria Aranguren <lisp-likely-smugly@duck.com>"]
+description = "Web based system monitor"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/josema294/wtop"
+homepage = "https://github.com/josema294/wtop"
+readme = "README.md"
+keywords = ["monitor", "system", "cli", "top"]
+categories = ["command-line-utilities", "visualization"]
 
 [dependencies]
 axum = "0.8.8"
