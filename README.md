@@ -2,7 +2,7 @@
 
 A high-performance, real-time system monitor inspired by **BTOP**, rebuilt for the web using **Rust** and **Tailwind CSS**.
 
-![Monitorizer Dashboard](file:///home/jose/.gemini/antigravity/brain/6e1347fb-0c38-4948-ad63-50becdf0cc35/btop_rust_amd_sysfs_gpu_1772389844092.webp)
+![Monitorizer Dashboard](./assets/demo.webp)
 
 ## 🌟 Overview
 
