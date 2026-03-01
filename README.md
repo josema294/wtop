@@ -58,4 +58,10 @@ Monitor specific tasks effortlessly. Click a process to pin it; it will stay hig
 
 ---
 
+## 📄 License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. 
+
+The AGPLv3 is a strong copyleft license specifically designed for network-over-a-server software. It ensures that if you modify the software and run it on a server for others to use, you must also share your modified source code.
+
 *Developed with ❤️ using Rust.*
