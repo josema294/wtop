@@ -365,6 +365,7 @@ async fn main() {
     // Setup Axum Router
     let app = Router::new()
         .route("/events", get(sse_handler))
+        .route("/version", get(version_handler))
         .fallback_service(ServeDir::new("static"))
         .with_state(app_state);
 
@@ -393,4 +394,8 @@ async fn sse_handler(
     });
 
     Sse::new(event_stream).keep_alive(axum::response::sse::KeepAlive::new())
+}
+
+async fn version_handler() -> &'static str {
+    env!("CARGO_PKG_VERSION")
 }
