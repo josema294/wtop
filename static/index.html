@@ -61,6 +61,19 @@
         .progress-grad {
             background: linear-gradient(90deg, #9ece6a, #e0af68 70%, #f7768e 100%);
         }
+
+        .panel-minimized .panel-content {
+            display: none;
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .panel-minimized .toggle-btn {
+            transform: rotate(-90deg);
+        }
     </style>
 </head>
 
@@ -82,15 +95,20 @@
     </header>
 
     <!-- Main Grid -->
-    <main class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-4">
+    <main class="flex-1 overflow-y-auto p-3 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-min">
 
         <!-- CPU Panel -->
-        <section class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden">
-            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2">
-                <h2 class="text-b_accent_cyan tracking-wider font-semibold">CPU</h2>
-                <span id="cpu-name" class="text-xs text-b_muted truncate ml-2"></span>
+        <section id="panel-cpu"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden transition-all duration-300">
+            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-cpu')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold">CPU</h2>
+                </div>
+                <span id="cpu-name" class="text-[10px] text-b_muted truncate ml-2 max-w-[150px]"></span>
             </div>
-            <div class="p-4 flex flex-col gap-4">
+            <div class="panel-content p-4 flex flex-col gap-4">
                 <div class="flex justify-between items-end">
                     <div>
                         <span class="text-b_muted">Load</span>
@@ -109,11 +127,16 @@
         </section>
 
         <!-- Memory Panel -->
-        <section class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden">
-            <div class="bg-[#414868]/30 border-b border-b_border px-3 py-2">
-                <h2 class="text-b_accent_cyan tracking-wider font-semibold">MEMORY</h2>
+        <section id="panel-mem"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden transition-all duration-300">
+            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-mem')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold">MEMORY</h2>
+                </div>
             </div>
-            <div class="p-4 flex flex-col justify-center gap-5">
+            <div class="panel-content p-4 flex flex-col justify-center gap-5">
                 <!-- RAM -->
                 <div>
                     <div class="flex justify-between mb-1 text-xs">
@@ -142,11 +165,16 @@
         </section>
 
         <!-- Network Panel -->
-        <section class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden">
-            <div class="bg-[#414868]/30 border-b border-b_border px-3 py-2">
-                <h2 class="text-b_accent_cyan tracking-wider font-semibold">NETWORK & DISK I/O</h2>
+        <section id="panel-net"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden transition-all duration-300">
+            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-net')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold">NET & DISK</h2>
+                </div>
             </div>
-            <div class="p-4 flex flex-col justify-center gap-6 h-full">
+            <div class="panel-content p-4 flex flex-col justify-center gap-6 h-full">
 
                 <!-- Network Stats -->
                 <div>
@@ -196,13 +224,17 @@
         </section>
 
         <!-- GPU Panel -->
-        <section
-            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden lg:col-span-2">
-            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2">
-                <h2 class="text-b_accent_cyan tracking-wider font-semibold">GPU</h2>
-                <span id="gpu-name" class="text-xs text-b_muted truncate ml-2">No GPU Detected</span>
+        <section id="panel-gpu"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden md:col-span-2 xl:col-span-1 border-b_border transition-all duration-300">
+            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-gpu')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold">GPU</h2>
+                </div>
+                <span id="gpu-name" class="text-[10px] text-b_muted truncate ml-2 max-w-[150px]">No GPU Detected</span>
             </div>
-            <div id="gpu-content" class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4 opacity-50">
+            <div id="gpu-content" class="panel-content p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 opacity-50">
                 <!-- GPU Load -->
                 <div class="flex flex-col">
                     <span class="text-b_muted mb-1">Load</span>
@@ -240,13 +272,17 @@
         </section>
 
         <!-- Processes Panel -->
-        <section
-            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden lg:col-span-2">
-            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2">
-                <h2 class="text-b_accent_cyan tracking-wider font-semibold">PROCESSES</h2>
-                <div class="text-xs text-b_muted">Top 15 by CPU</div>
+        <section id="panel-proc"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden md:col-span-2 xl:col-span-2 transition-all duration-300">
+            <div class="flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-proc')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold">PROCESSES</h2>
+                </div>
+                <div class="text-[10px] text-b_muted">Top 15 CPU</div>
             </div>
-            <div class="overflow-x-auto flex-1">
+            <div class="panel-content overflow-x-auto flex-1">
                 <table class="w-full text-left whitespace-nowrap">
                     <thead class="sticky top-0 bg-b_panel text-b_accent_blue border-b border-b_border">
                         <tr>
@@ -269,6 +305,11 @@
     <script>
         // DOM Elements
         const el = (id) => document.getElementById(id);
+
+        // Interaction
+        const togglePanel = (id) => {
+            el(id).classList.toggle('panel-minimized');
+        };
 
         // Formatters
         const formatBytes = (bytes, decimals = 2) => {
