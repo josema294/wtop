@@ -26,3 +26,11 @@ credentials.json
 # Compiled Binary
 debug/
 release/
+
+# AUR repository
+/aur/
+
+# Compiled Binaries and Output
+*.zst
+*.gz
+cargo_output/

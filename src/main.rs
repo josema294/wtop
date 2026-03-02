@@ -1,8 +1,8 @@
 use axum::{
+    Router,
     extract::State,
     response::sse::{Event, Sse},
     routing::get,
-    Router,
 };
 use futures::stream::Stream;
 use nvml_wrapper::Nvml;
@@ -120,27 +120,40 @@ fn get_sysfs_gpu_info() -> Option<GpuInfo> {
                     if let Ok(load) = fs::read_to_string(device_path.join("gpu_busy_percent")) {
                         gpu.load = load.trim().parse().unwrap_or(0);
                     }
-                    if let Ok(vram_used) = fs::read_to_string(device_path.join("mem_info_vram_used")) {
+                    if let Ok(vram_used) =
+                        fs::read_to_string(device_path.join("mem_info_vram_used"))
+                    {
                         gpu.vram_used = vram_used.trim().parse().unwrap_or(0);
                     }
-                    if let Ok(vram_total) = fs::read_to_string(device_path.join("mem_info_vram_total")) {
+                    if let Ok(vram_total) =
+                        fs::read_to_string(device_path.join("mem_info_vram_total"))
+                    {
                         gpu.vram_total = vram_total.trim().parse().unwrap_or(0);
                     }
-                    
+
                     if gpu.vram_total > 0 {
-                        gpu.mem_load = ((gpu.vram_used as f64 / gpu.vram_total as f64) * 100.0) as u32;
+                        gpu.mem_load =
+                            ((gpu.vram_used as f64 / gpu.vram_total as f64) * 100.0) as u32;
                     }
 
                     if let Ok(hwmon_entries) = fs::read_dir(device_path.join("hwmon")) {
                         for hwmon in hwmon_entries.flatten() {
                             let hwmon_path = hwmon.path();
-                            if let Ok(temp1_input) = fs::read_to_string(hwmon_path.join("temp1_input")) {
+                            if let Ok(temp1_input) =
+                                fs::read_to_string(hwmon_path.join("temp1_input"))
+                            {
                                 gpu.temp = (temp1_input.trim().parse::<u32>().unwrap_or(0)) / 1000;
                             }
-                            if let Ok(power_input) = fs::read_to_string(hwmon_path.join("power1_average")) {
-                                gpu.power_w = (power_input.trim().parse::<u32>().unwrap_or(0)) / 1_000_000;
-                            } else if let Ok(power_input) = fs::read_to_string(hwmon_path.join("power1_input")) {
-                                gpu.power_w = (power_input.trim().parse::<u32>().unwrap_or(0)) / 1_000_000;
+                            if let Ok(power_input) =
+                                fs::read_to_string(hwmon_path.join("power1_average"))
+                            {
+                                gpu.power_w =
+                                    (power_input.trim().parse::<u32>().unwrap_or(0)) / 1_000_000;
+                            } else if let Ok(power_input) =
+                                fs::read_to_string(hwmon_path.join("power1_input"))
+                            {
+                                gpu.power_w =
+                                    (power_input.trim().parse::<u32>().unwrap_or(0)) / 1_000_000;
                             }
                         }
                     }
@@ -167,10 +180,12 @@ fn get_cpu_temp() -> (f32, Vec<f32>) {
                     if let Ok(temp) = fs::read_to_string(entry.path().join("temp1_input")) {
                         global_temp = temp.trim().parse::<f32>().unwrap_or(0.0) / 1000.0;
                     }
-                    
+
                     // Try to get individual core temps if available (temp2, temp3...)
                     let mut i = 2;
-                    while let Ok(temp) = fs::read_to_string(entry.path().join(format!("temp{}_input", i))) {
+                    while let Ok(temp) =
+                        fs::read_to_string(entry.path().join(format!("temp{}_input", i)))
+                    {
                         cores_temp.push(temp.trim().parse::<f32>().unwrap_or(0.0) / 1000.0);
                         i += 1;
                     }
@@ -212,7 +227,7 @@ async fn main() {
     tokio::spawn(async move {
         let mut sys = System::new_all();
         let mut networks = Networks::new_with_refreshed_list();
-        
+
         loop {
             tokio::time::sleep(Duration::from_millis(1500)).await;
 
@@ -232,9 +247,12 @@ async fn main() {
             for cpu in cpus {
                 cores_usage.push(cpu.cpu_usage());
             }
-            let brand = cpus.first().map(|c| c.brand().to_string()).unwrap_or_else(|| "Unknown".to_string());
+            let brand = cpus
+                .first()
+                .map(|c| c.brand().to_string())
+                .unwrap_or_else(|| "Unknown".to_string());
             let physical_core_count = System::physical_core_count().unwrap_or(0);
-            
+
             let (global_temp, cores_temp) = get_cpu_temp();
             let cores_freq = get_cpu_frequencies();
             let avg_freq = if !cores_freq.is_empty() {
@@ -285,11 +303,13 @@ async fn main() {
                     let load = device.utilization_rates().map(|u| u.gpu).unwrap_or(0);
                     let mem_load = device.utilization_rates().map(|u| u.memory).unwrap_or(0);
                     // the newer nvml-wrapper doesn't need enum_wrappers for temperature in some cases or its simpler, let's keep it clean
-                    let temp = device.temperature(nvml_wrapper::enum_wrappers::device::TemperatureSensor::Gpu).unwrap_or(0);
-                    
+                    let temp = device
+                        .temperature(nvml_wrapper::enum_wrappers::device::TemperatureSensor::Gpu)
+                        .unwrap_or(0);
+
                     let power = device.power_usage().unwrap_or(0) / 1000; // milliwatts to watts
                     let memory = device.memory_info().ok();
-                    
+
                     gpu_info = Some(GpuInfo {
                         name,
                         load,
@@ -316,14 +336,16 @@ async fn main() {
                 for line in contents.lines() {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if parts.len() >= 14 {
-                        // Looking for nvme* or sd* partitions that are the parent disk not partitions 
+                        // Looking for nvme* or sd* partitions that are the parent disk not partitions
                         // To simplify, we sum all physical disks
-                        let is_physical_disk = (parts[2].starts_with("sd") && parts[2].len() == 3) || 
-                                               (parts[2].starts_with("nvme") && parts[2].len() == 7);
-                                               
+                        let is_physical_disk = (parts[2].starts_with("sd") && parts[2].len() == 3)
+                            || (parts[2].starts_with("nvme") && parts[2].len() == 7);
+
                         if is_physical_disk {
                             // field 5: sectors read, field 9: sectors written
-                            if let (Ok(r), Ok(w)) = (parts[5].parse::<u64>(), parts[9].parse::<u64>()) {
+                            if let (Ok(r), Ok(w)) =
+                                (parts[5].parse::<u64>(), parts[9].parse::<u64>())
+                            {
                                 disk_read_sectors += r;
                                 disk_write_sectors += w;
                             }
@@ -339,19 +361,23 @@ async fn main() {
             };
 
             // PROC
-            let mut processes: Vec<ProcessInfo> = sys.processes().iter().map(|(pid, proc)| {
-                ProcessInfo {
+            let mut processes: Vec<ProcessInfo> = sys
+                .processes()
+                .iter()
+                .map(|(pid, proc)| ProcessInfo {
                     pid: pid.as_u32(),
                     name: proc.name().to_string_lossy().to_string(),
                     cpu_usage: proc.cpu_usage(),
                     mem_usage: proc.memory(),
-                    user: proc.user_id().map(|id| id.to_string()).unwrap_or_else(|| "root".to_string()),
-                }
-            }).collect();
-            
-            // Sort by CPU usage and get top 50
+                    user: proc
+                        .user_id()
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "root".to_string()),
+                })
+                .collect();
+
+            // Sort by CPU usage as default
             processes.sort_by(|a, b| b.cpu_usage.partial_cmp(&a.cpu_usage).unwrap());
-            processes.truncate(50);
 
             let metrics = SystemMetrics {
                 os_name,
@@ -381,7 +407,7 @@ async fn main() {
     let port = 3000;
     let addr = format!("0.0.0.0:{}", port);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    println!("Monitorizer Backend running on http://{}", addr);
+    println!("Wtop Backend running on http://{}", addr);
 
     axum::serve(listener, app).await.unwrap();
 }

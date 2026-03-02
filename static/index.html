@@ -296,7 +296,7 @@
                     <span class="toggle-btn text-b_muted">▼</span>
                     <h2 class="text-b_accent_cyan tracking-wider font-semibold">PROCESSES</h2>
                 </div>
-                <div class="text-[10px] text-b_muted">Top 50 CPU</div>
+                <div id="proc-count" class="text-[10px] text-b_muted">Processes</div>
             </div>
             <div class="panel-content overflow-auto flex-1 max-h-[400px]">
                 <table class="w-full text-left whitespace-nowrap">
@@ -513,7 +513,7 @@
 
             // Processes Table
             const tbody = el('proc-body');
-            tbody.innerHTML = '';
+            el('proc-count').textContent = `${data.processes.length} Processes`;
 
             // Apply Client-side sorting
             const sortedProcesses = [...data.processes].sort((a, b) => {
@@ -530,13 +530,15 @@
                 return (valA - valB) * sortOrder;
             });
 
-            sortedProcesses.forEach(p => {
+            // Re-render only if there are changes or large update to avoid too much overhead
+            let html = '';
+            for (const p of sortedProcesses) {
                 const isPinned = p.pid === pinnedPid;
                 const rowClass = isPinned
                     ? 'bg-b_accent_magenta/20 border-b_accent_magenta/40'
                     : 'hover:bg-[#414868]/30 border-[#414868]/30';
 
-                tbody.insertAdjacentHTML('beforeend', `
+                html += `
                     <tr class="transition-colors border-b border-dashed cursor-pointer ${rowClass}" onclick="togglePin(${p.pid})">
                         <td class="px-3 py-1.5 text-b_accent_yellow flex items-center gap-1">
                             ${isPinned ? '📌' : ''} ${p.pid}
@@ -546,8 +548,9 @@
                         <td class="px-3 py-1.5">${formatBytes(p.mem_usage)}</td>
                         <td class="px-3 py-1.5 text-b_accent_cyan font-semibold truncate max-w-[150px] sm:max-w-none">${p.name}</td>
                     </tr>
-                `);
-            });
+                `;
+            }
+            tbody.innerHTML = html;
         };
     </script>
 </body>
