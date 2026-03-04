@@ -1,17 +1,26 @@
 use axum::{
     Router,
+    body::Body,
     extract::State,
-    response::sse::{Event, Sse},
+    http::{StatusCode, Uri, header},
+    response::{
+        IntoResponse, Response,
+        sse::{Event, Sse},
+    },
     routing::get,
 };
 use futures::stream::Stream;
 use nvml_wrapper::Nvml;
+use rust_embed::RustEmbed;
 use serde::Serialize;
 use std::{convert::Infallible, fs, sync::Arc, time::Duration};
 use sysinfo::{Networks, System};
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
-use tower_http::services::ServeDir;
+
+#[derive(RustEmbed)]
+#[folder = "static/"]
+struct Asset;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct SystemMetrics {
@@ -401,7 +410,7 @@ async fn main() {
     let app = Router::new()
         .route("/events", get(sse_handler))
         .route("/version", get(version_handler))
-        .fallback_service(ServeDir::new("static"))
+        .fallback(static_handler)
         .with_state(app_state);
 
     let port = 3000;
@@ -433,4 +442,30 @@ async fn sse_handler(
 
 async fn version_handler() -> &'static str {
     env!("CARGO_PKG_VERSION")
+}
+
+async fn static_handler(uri: Uri) -> impl IntoResponse {
+    let mut path = uri.path().trim_start_matches('/').to_string();
+
+    if path.is_empty() {
+        path = "index.html".to_string();
+    }
+
+    match Asset::get(path.as_str()) {
+        Some(content) => {
+            let mime = mime_guess::from_path(&path).first_or_octet_stream();
+            Response::builder()
+                .header(header::CONTENT_TYPE, mime.as_ref())
+                .body(Body::from(content.data))
+                .unwrap()
+                .into_response()
+        }
+        None => {
+            if path == "index.html" {
+                (StatusCode::NOT_FOUND, "index.html not found").into_response()
+            } else {
+                (StatusCode::NOT_FOUND, "404 Not Found").into_response()
+            }
+        }
+    }
 }
