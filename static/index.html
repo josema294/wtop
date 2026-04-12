@@ -150,7 +150,7 @@
         </div>
         <div class="hidden sm:block text-b_accent_blue text-xs">
             <span id="hostname" data-i18n="header.loading">Loading...</span> | <span id="os-distro"></span> | <span
-                data-i18n="header.uptime">Uptime:</span> <span id="uptime"></span>
+                data-i18n="header.uptime">Uptime:</span> <span id="uptime"></span> | <span data-i18n="header.load">Load:</span> <span id="load-avg" class="text-b_accent_yellow"></span>
         </div>
         <div class="flex items-center gap-2 text-xs">
             <!-- Settings Toggle -->
@@ -198,6 +198,8 @@
                         <div id="cpu-power" class="text-xl sm:text-2xl text-b_accent_green font-bold mt-1">0W</div>
                     </div>
                 </div>
+                <!-- CPU Sparkline -->
+                <svg id="spark-cpu" class="w-full h-6 text-b_accent_cyan opacity-60"></svg>
                 <!-- Cores Container -->
                 <div id="cores-container" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mt-2">
                     <!-- Dynamic Cores -->
@@ -216,6 +218,8 @@
                 </div>
             </div>
             <div class="panel-content p-4 flex flex-col flex-1 justify-center gap-5">
+                <!-- Memory Sparkline -->
+                <svg id="spark-ram" class="w-full h-6 text-b_accent_magenta opacity-60"></svg>
                 <!-- RAM -->
                 <div>
                     <div class="flex justify-between mb-1 text-xs">
@@ -361,6 +365,23 @@
             </div>
         </section>
 
+        <!-- Filesystems Panel -->
+        <section id="panel-fs" draggable="true"
+            class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden transition-all duration-300 panel-draggable">
+            <div class="panel-header flex justify-between items-center bg-[#414868]/30 border-b border-b_border px-3 py-2 cursor-pointer select-none"
+                onclick="togglePanel('panel-fs')">
+                <div class="flex items-center gap-2">
+                    <span class="toggle-btn text-b_muted">▼</span>
+                    <h2 class="text-b_accent_cyan tracking-wider font-semibold" data-i18n="panel.fs.title">FILESYSTEMS</h2>
+                </div>
+            </div>
+            <div class="panel-content p-4 flex flex-col flex-1 gap-2">
+                <div id="fs-container" class="flex flex-col gap-3">
+                    <!-- Dynamic filesystems -->
+                </div>
+            </div>
+        </section>
+
         <!-- Processes Panel -->
         <section id="panel-proc" draggable="true"
             class="bg-b_panel border border-b_border rounded-lg flex flex-col shadow-lg overflow-hidden md:col-span-2 xl:col-span-2 transition-all duration-300 panel-draggable">
@@ -384,6 +405,9 @@
                             <th class="px-3 py-2 font-normal cursor-pointer hover:bg-b_border/30"
                                 onclick="setSort('user')"><span data-i18n="panel.proc.user">USER</span> <span
                                     id="sort-user"></span></th>
+                            <th class="px-3 py-2 font-normal cursor-pointer hover:bg-b_border/30"
+                                onclick="setSort('status')"><span data-i18n="panel.proc.status">STATUS</span> <span
+                                    id="sort-status"></span></th>
                             <th class="px-3 py-2 font-normal cursor-pointer hover:bg-b_border/30"
                                 onclick="setSort('cpu_usage')"><span data-i18n="panel.proc.cpu">CPU%</span> <span
                                     id="sort-cpu_usage"></span></th>
@@ -444,7 +468,7 @@
         };
 
         const updateSortIndicators = () => {
-            ['pid', 'user', 'cpu_usage', 'mem_usage', 'name'].forEach(k => {
+            ['pid', 'user', 'status', 'cpu_usage', 'mem_usage', 'name'].forEach(k => {
                 const indicator = el(`sort-${k}`);
                 if (k === sortKey) {
                     indicator.textContent = sortOrder === 1 ? '▲' : '▼';
@@ -479,6 +503,23 @@
             const h = Math.floor(seconds % (3600 * 24) / 3600);
             const m = Math.floor(seconds % 3600 / 60);
             return `${d}d ${h}h ${m}m`;
+        };
+
+        // Sparkline history
+        const SPARK_POINTS = 40;
+        const sparkHistory = { cpu: [], ram: [], netRx: [], netTx: [] };
+
+        const renderSparkline = (id, values, maxVal) => {
+            const svg = el(id);
+            if (!svg || values.length < 2) return;
+            const w = svg.clientWidth || 120;
+            const h = svg.clientHeight || 24;
+            const step = w / (SPARK_POINTS - 1);
+            const peak = maxVal || Math.max(...values, 1);
+            const points = values.map((v, i) =>
+                `${(i * step).toFixed(1)},${(h - (v / peak) * h).toFixed(1)}`
+            ).join(' ');
+            svg.innerHTML = `<polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
         };
 
         // Network speed calculation state
@@ -527,6 +568,9 @@
             el('hostname').textContent = data.hostname;
             el('os-distro').textContent = `${data.os_name} ${data.os_version}`;
             el('uptime').textContent = formatUptime(data.uptime);
+            if (data.load_avg) {
+                el('load-avg').textContent = `${data.load_avg.one.toFixed(2)} ${data.load_avg.five.toFixed(2)} ${data.load_avg.fifteen.toFixed(2)}`;
+            }
 
             // CPU Info
             el('cpu-name').textContent = data.cpu.brand;
@@ -577,31 +621,60 @@
             el('swap-total').textContent = formatGiB(data.mem.total_swap);
             el('swap-bar').style.width = data.mem.total_swap > 0 ? (data.mem.used_swap / data.mem.total_swap * 100) + '%' : '0%';
 
-            // Network Speed & Disk I/O Calculation
+            // Network Speed (aggregate all interfaces)
             const now = Date.now();
-            if (!isFirstData) {
-                const timeDiff = (now - lastNet.time) / 1000; // seconds
+            const totalRx = data.net.reduce((s, i) => s + i.rx_bytes, 0);
+            const totalTx = data.net.reduce((s, i) => s + i.tx_bytes, 0);
+            // Disk I/O (aggregate all disks)
+            const totalDrx = data.disk_io.reduce((s, d) => s + d.read_bytes, 0);
+            const totalDtx = data.disk_io.reduce((s, d) => s + d.write_bytes, 0);
 
-                // Net 
-                const rxSpeed = Math.max(0, (data.net.rx_bytes - lastNet.rx) / timeDiff);
-                const txSpeed = Math.max(0, (data.net.tx_bytes - lastNet.tx) / timeDiff);
+            if (!isFirstData) {
+                const timeDiff = (now - lastNet.time) / 1000;
+
+                const rxSpeed = Math.max(0, (totalRx - lastNet.rx) / timeDiff);
+                const txSpeed = Math.max(0, (totalTx - lastNet.tx) / timeDiff);
                 el('net-down').textContent = formatBytes(rxSpeed) + '/s';
                 el('net-up').textContent = formatBytes(txSpeed) + '/s';
 
-                // Disk
-                const drxSpeed = Math.max(0, (data.disk_io.read_bytes - lastNet.drx) / timeDiff);
-                const dtxSpeed = Math.max(0, (data.disk_io.write_bytes - lastNet.dtx) / timeDiff);
+                const drxSpeed = Math.max(0, (totalDrx - lastNet.drx) / timeDiff);
+                const dtxSpeed = Math.max(0, (totalDtx - lastNet.dtx) / timeDiff);
                 el('disk-read').textContent = formatBytes(drxSpeed) + '/s';
                 el('disk-write').textContent = formatBytes(dtxSpeed) + '/s';
+
+                // Push to sparkline history
+                sparkHistory.cpu.push(data.cpu.global_usage);
+                sparkHistory.ram.push(data.mem.used_mem / data.mem.total_mem * 100);
+                sparkHistory.netRx.push(rxSpeed);
+                sparkHistory.netTx.push(txSpeed);
+                for (const key of Object.keys(sparkHistory)) {
+                    if (sparkHistory[key].length > SPARK_POINTS) sparkHistory[key].shift();
+                }
+                renderSparkline('spark-cpu', sparkHistory.cpu, 100);
+                renderSparkline('spark-ram', sparkHistory.ram, 100);
             }
-            lastNet = {
-                rx: data.net.rx_bytes,
-                tx: data.net.tx_bytes,
-                drx: data.disk_io.read_bytes,
-                dtx: data.disk_io.write_bytes,
-                time: now
-            };
+            lastNet = { rx: totalRx, tx: totalTx, drx: totalDrx, dtx: totalDtx, time: now };
             isFirstData = false;
+
+            // Filesystems
+            const fsContainer = el('fs-container');
+            let fsHtml = '';
+            for (const fs of data.filesystems) {
+                const pct = fs.total_bytes > 0 ? (fs.used_bytes / fs.total_bytes * 100) : 0;
+                const color = pct > 90 ? 'bg-b_accent_red' : pct > 70 ? 'bg-b_accent_yellow' : 'bg-b_accent_green';
+                fsHtml += `
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-b_text font-bold">${escapeHtml(fs.mount_point)}</span>
+                            <span class="text-b_muted">${escapeHtml(fs.fs_type)} — ${formatBytes(fs.used_bytes)} / ${formatBytes(fs.total_bytes)} (${pct.toFixed(1)}%)</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-b_bg rounded-full overflow-hidden">
+                            <div class="h-full ${color} transition-all duration-300" style="width: ${Math.min(pct, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            fsContainer.innerHTML = fsHtml;
 
             // GPU Panel update
             if (data.gpu) {
@@ -648,11 +721,12 @@
                     : 'hover:bg-[#414868]/30 border-[#414868]/30';
 
                 html += `
-                    <tr class="transition-colors border-b border-dashed cursor-pointer ${rowClass}" onclick="togglePin(${p.pid})">
+                    <tr class="transition-colors border-b border-dashed cursor-pointer ${rowClass}" onclick="togglePin(${p.pid})" title="${escapeHtml(p.cmd)}">
                         <td class="px-3 py-1.5 text-b_accent_yellow flex items-center gap-1">
                             ${isPinned ? '📌' : ''} ${p.pid}
                         </td>
                         <td class="px-3 py-1.5 text-b_muted">${escapeHtml(p.user)}</td>
+                        <td class="px-3 py-1.5 text-b_muted text-[10px]">${escapeHtml(p.status)}</td>
                         <td class="px-3 py-1.5 font-bold">${p.cpu_usage.toFixed(1)}%</td>
                         <td class="px-3 py-1.5">${formatBytes(p.mem_usage)}</td>
                         <td class="px-3 py-1.5 text-b_accent_cyan font-semibold truncate max-w-[150px] sm:max-w-none">${escapeHtml(p.name)}</td>
@@ -730,7 +804,7 @@
         // --- Settings Modal Logic --- //
         const SETTINGS_KEY = 'wtop_settings';
         const defaultSettings = {
-            visibility: { cpu: true, mem: true, net: true, gpu: true, proc: true },
+            visibility: { cpu: true, mem: true, net: true, gpu: true, fs: true, proc: true },
             theme: 'default', // default | light
             sampleRate: 1000,
             compact: false,
@@ -771,6 +845,7 @@
             document.getElementById('vis-mem').checked = cfg.visibility.mem;
             document.getElementById('vis-net').checked = cfg.visibility.net;
             document.getElementById('vis-gpu').checked = cfg.visibility.gpu;
+            document.getElementById('vis-fs').checked = cfg.visibility.fs !== false;
             document.getElementById('vis-proc').checked = cfg.visibility.proc;
 
             document.getElementById('theme-select').value = cfg.theme;
@@ -781,7 +856,7 @@
 
         const applySettings = (cfg) => {
             // Apply Visibility
-            const panels = { cpu: 'panel-cpu', mem: 'panel-mem', net: 'panel-net', gpu: 'panel-gpu', proc: 'panel-proc' };
+            const panels = { cpu: 'panel-cpu', mem: 'panel-mem', net: 'panel-net', gpu: 'panel-gpu', fs: 'panel-fs', proc: 'panel-proc' };
             Object.entries(cfg.visibility).forEach(([key, visible]) => {
                 const el = document.getElementById(panels[key]);
                 if (el) {
@@ -818,6 +893,7 @@
                     mem: document.getElementById('vis-mem').checked,
                     net: document.getElementById('vis-net').checked,
                     gpu: document.getElementById('vis-gpu').checked,
+                    fs: document.getElementById('vis-fs').checked,
                     proc: document.getElementById('vis-proc').checked,
                 },
                 theme: document.getElementById('theme-select').value,
@@ -910,6 +986,9 @@
                         <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="vis-gpu"
                                 class="settings-input rounded border-b_border text-b_accent_cyan"> <span
                                 data-i18n="settings.vis.gpu">Módulo GPU</span></label>
+                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="vis-fs"
+                                class="settings-input rounded border-b_border text-b_accent_cyan"> <span
+                                data-i18n="settings.vis.fs">Filesystems Panel</span></label>
                         <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="vis-proc"
                                 class="settings-input rounded border-b_border text-b_accent_cyan"> <span
                                 data-i18n="settings.vis.proc">Módulo

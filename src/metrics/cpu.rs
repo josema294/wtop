@@ -1,14 +1,79 @@
 use std::fs;
+use std::time::{Duration, Instant};
 
 use crate::models::CpuInfo;
 use sysinfo::System;
 
-/// Base power draw in watts when CPU is idle (estimation).
+/// Base power draw in watts when CPU is idle (estimation fallback).
 const CPU_POWER_IDLE_W: f32 = 30.0;
-/// Additional power draw in watts at 100% CPU load (estimation).
+/// Additional power draw in watts at 100% CPU load (estimation fallback).
 const CPU_POWER_LOAD_W: f32 = 75.0;
 
-pub fn collect(sys: &System) -> CpuInfo {
+/// Tracks RAPL energy readings between samples to compute real power.
+pub struct RaplState {
+    last_energy_uj: Option<u64>,
+    last_read: Instant,
+    rapl_path: Option<String>,
+}
+
+impl RaplState {
+    pub fn new() -> Self {
+        // Detect RAPL path at init
+        let rapl_path = find_rapl_path();
+        if rapl_path.is_some() {
+            tracing::info!("RAPL power monitoring available");
+        } else {
+            tracing::info!("RAPL not available, using power estimation");
+        }
+        Self {
+            last_energy_uj: None,
+            last_read: Instant::now(),
+            rapl_path,
+        }
+    }
+
+    fn read_power(&mut self) -> Option<f32> {
+        let path = self.rapl_path.as_ref()?;
+        let energy_uj: u64 = fs::read_to_string(path).ok()?.trim().parse().ok()?;
+        let now = Instant::now();
+
+        let power = if let Some(last) = self.last_energy_uj {
+            let elapsed = now.duration_since(self.last_read);
+            if elapsed > Duration::from_millis(100) {
+                let delta_uj = if energy_uj >= last {
+                    energy_uj - last
+                } else {
+                    // Counter wrapped around
+                    energy_uj
+                };
+                Some(delta_uj as f32 / elapsed.as_micros() as f32) // µJ / µs = W
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        self.last_energy_uj = Some(energy_uj);
+        self.last_read = now;
+        power
+    }
+}
+
+fn find_rapl_path() -> Option<String> {
+    // Try intel-rapl and amd-rapl
+    for base in &[
+        "/sys/class/powercap/intel-rapl:0/energy_uj",
+        "/sys/class/powercap/amd-rapl:0/energy_uj",
+    ] {
+        if fs::metadata(base).is_ok() {
+            return Some(base.to_string());
+        }
+    }
+    None
+}
+
+pub fn collect(sys: &System, rapl: &mut RaplState) -> CpuInfo {
     let cpus = sys.cpus();
     let global_usage = sys.global_cpu_usage();
     let cores_usage: Vec<f32> = cpus.iter().map(|cpu| cpu.cpu_usage()).collect();
@@ -26,7 +91,10 @@ pub fn collect(sys: &System) -> CpuInfo {
         0.0
     };
 
-    let power_w = CPU_POWER_IDLE_W + (global_usage / 100.0 * CPU_POWER_LOAD_W);
+    // Use RAPL if available, otherwise estimate
+    let power_w = rapl
+        .read_power()
+        .unwrap_or_else(|| CPU_POWER_IDLE_W + (global_usage / 100.0 * CPU_POWER_LOAD_W));
 
     CpuInfo {
         global_usage,
@@ -99,5 +167,11 @@ mod tests {
     fn power_estimation_full_load() {
         let power = CPU_POWER_IDLE_W + (100.0 / 100.0 * CPU_POWER_LOAD_W);
         assert!((power - 105.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn rapl_path_detection() {
+        // Just verify the function doesn't panic
+        let _ = find_rapl_path();
     }
 }

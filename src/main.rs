@@ -7,7 +7,6 @@ use axum::{Router, routing::get};
 use clap::Parser;
 use models::SystemMetrics;
 use std::{net::IpAddr, sync::Arc, time::Duration};
-use sysinfo::{Networks, System};
 use tokio::sync::broadcast;
 use tracing::{debug, info, warn};
 
@@ -56,7 +55,7 @@ async fn main() -> Result<()> {
     let (tx, _) = broadcast::channel::<SystemMetrics>(BROADCAST_CAPACITY);
     let app_state = Arc::new(AppState { tx: tx.clone() });
 
-    // Detect GPU once at startup
+    // Detect GPU once at startup, create metrics collector
     let gpu_source = metrics::gpu::detect_source();
 
     // Spawn the metrics collector on a dedicated OS thread to avoid
@@ -64,13 +63,12 @@ async fn main() -> Result<()> {
     std::thread::Builder::new()
         .name("wtop-metrics".into())
         .spawn(move || {
-            let mut sys = System::new_all();
-            let mut networks = Networks::new_with_refreshed_list();
+            let mut collector = metrics::MetricsCollector::new(gpu_source);
 
             loop {
                 std::thread::sleep(Duration::from_millis(METRICS_INTERVAL_MS));
 
-                let collected = metrics::collect_all(&mut sys, &mut networks, &gpu_source);
+                let collected = collector.collect();
 
                 if let Err(e) = tx.send(collected) {
                     debug!("No SSE subscribers connected: {}", e);

@@ -3,64 +3,69 @@
     "header.title": "Wtop",
     "header.rust": "... (Rust)",
     "header.uptime": "Uptime:",
+    "header.load": "Load:",
     "header.disconnected": "Disconnected",
     "header.loading": "Loading...",
-    
+
     "settings.title": "⚙️ Settings",
     "settings.tab.menu": "Panel Visibility",
     "settings.tab.style": "Appearance",
     "settings.tab.monitor": "Data Polling",
     "settings.tab.other": "Miscellaneous",
     "settings.close": "Close",
-    
+
     "settings.vis.title": "Panel Visibility",
     "settings.vis.cpu": "CPU Panel",
     "settings.vis.mem": "Memory Panel",
     "settings.vis.net": "Network & Disk Panel",
     "settings.vis.gpu": "GPU Panel",
+    "settings.vis.fs": "Filesystems Panel",
     "settings.vis.proc": "Processes Panel",
-    
+
     "settings.style.title": "Appearance",
     "settings.style.theme_label": "Theme",
     "settings.style.theme_dark": "Default Dark (Tokyo Night)",
     "settings.style.theme_light": "Light Mode (Base)",
-    
+
     "settings.monitor.title": "Data Polling",
     "settings.monitor.interval": "Frontend Update Interval (ms)",
     "settings.monitor.desc": "Changes are client-side. The backend streams data independently over SSE.",
-    
+
     "settings.other.title": "Miscellaneous UI Options",
     "settings.other.compact": "Compact Mode (reduces margins)",
 
     "settings.lang.label": "Language",
-    
+
     "panel.cpu.title": "CPU",
     "panel.cpu.usage": "Usage",
     "panel.cpu.freq": "Frequency",
     "panel.cpu.temp": "Temperature",
     "panel.cpu.power": "Power",
-    
+
     "panel.mem.title": "Memory",
     "panel.mem.usage": "Usage",
     "panel.mem.swap": "Swap",
-    
+
     "panel.net.title": "Network",
     "panel.net.send": "Send",
     "panel.net.recv": "Recv",
     "panel.disk.title": "Disk I/O",
     "panel.disk.read": "Read",
     "panel.disk.write": "Write",
-    
+
     "panel.gpu.title": "GPU",
     "panel.gpu.none": "No GPU Detected",
     "panel.gpu.usage": "Usage",
     "panel.gpu.vram": "VRAM",
     "panel.gpu.temp": "Temp",
     "panel.gpu.power": "Power",
-    
+
+    "panel.fs.title": "Filesystems",
+
     "panel.proc.title": "Processes",
     "panel.proc.pid": "PID",
     "panel.proc.user": "USER",
+    "panel.proc.status": "STATUS",
     "panel.proc.cpu": "CPU%",
     "panel.proc.mem": "MEM",
     "panel.proc.command": "COMMAND"
@@ -69,64 +74,69 @@
     "header.title": "Wtop",
     "header.rust": "... (Rust)",
     "header.uptime": "Tiempo Activo:",
+    "header.load": "Carga:",
     "header.disconnected": "Desconectado",
     "header.loading": "Cargando...",
-    
+
     "settings.title": "⚙️ Configuración",
     "settings.tab.menu": "Menú Visibilidad",
     "settings.tab.style": "Estilos",
     "settings.tab.monitor": "Monitorización",
     "settings.tab.other": "Otros",
     "settings.close": "Cerrar",
-    
+
     "settings.vis.title": "Visibilidad de Paneles",
     "settings.vis.cpu": "Módulo CPU",
     "settings.vis.mem": "Módulo Memoria",
     "settings.vis.net": "Módulo Red/Disco",
     "settings.vis.gpu": "Módulo GPU",
+    "settings.vis.fs": "Módulo Filesystems",
     "settings.vis.proc": "Módulo Procesos",
-    
+
     "settings.style.title": "Apariencia",
     "settings.style.theme_label": "Tema",
     "settings.style.theme_dark": "Oscuro por defecto (Tokyo Night)",
     "settings.style.theme_light": "Modo Claro (Base)",
-    
+
     "settings.monitor.title": "Opciones de Datos",
     "settings.monitor.interval": "Intervalo actualización Frontend (ms)",
     "settings.monitor.desc": "El frontend actualiza en base a este tiempo. El backend continúa mandando eventos SSE de forma asíncrona.",
-    
+
     "settings.other.title": "Opciones varias de UI",
     "settings.other.compact": "Modo Compacto (reduce márgenes)",
 
     "settings.lang.label": "Idioma",
-    
+
     "panel.cpu.title": "CPU",
     "panel.cpu.usage": "Uso",
     "panel.cpu.freq": "Frecuencia",
     "panel.cpu.temp": "Temperatura",
     "panel.cpu.power": "Potencia",
-    
+
     "panel.mem.title": "Memoria",
     "panel.mem.usage": "Uso",
     "panel.mem.swap": "Intercambio",
-    
+
     "panel.net.title": "Red",
     "panel.net.send": "Enviado",
     "panel.net.recv": "Recibido",
     "panel.disk.title": "Disp. I/O",
     "panel.disk.read": "Lectura",
     "panel.disk.write": "Escritura",
-    
+
     "panel.gpu.title": "GPU",
     "panel.gpu.none": "Sin GPU Detectada",
     "panel.gpu.usage": "Uso",
     "panel.gpu.vram": "VRAM",
     "panel.gpu.temp": "Temp",
     "panel.gpu.power": "Potencia",
-    
+
+    "panel.fs.title": "Sistemas de Archivos",
+
     "panel.proc.title": "Procesos",
     "panel.proc.pid": "PID",
     "panel.proc.user": "USUARIO",
+    "panel.proc.status": "ESTADO",
     "panel.proc.cpu": "CPU%",
     "panel.proc.mem": "MEM",
     "panel.proc.command": "COMANDO"

@@ -6,12 +6,21 @@ pub struct SystemMetrics {
     pub os_version: String,
     pub hostname: String,
     pub uptime: u64,
+    pub load_avg: LoadAvg,
     pub cpu: CpuInfo,
     pub mem: MemInfo,
-    pub net: NetInfo,
+    pub net: Vec<InterfaceInfo>,
     pub gpu: Option<GpuInfo>,
-    pub disk_io: DiskIoInfo,
+    pub disk_io: Vec<DiskIoEntry>,
+    pub filesystems: Vec<FilesystemInfo>,
     pub processes: Vec<ProcessInfo>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct LoadAvg {
+    pub one: f32,
+    pub five: f32,
+    pub fifteen: f32,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -36,7 +45,8 @@ pub struct MemInfo {
 }
 
 #[derive(Serialize, Clone, Debug)]
-pub struct NetInfo {
+pub struct InterfaceInfo {
+    pub name: String,
     pub rx_bytes: u64,
     pub tx_bytes: u64,
 }
@@ -53,16 +63,30 @@ pub struct GpuInfo {
 }
 
 #[derive(Serialize, Clone, Debug)]
-pub struct DiskIoInfo {
+pub struct DiskIoEntry {
+    pub name: String,
     pub read_bytes: u64,
     pub write_bytes: u64,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct FilesystemInfo {
+    pub mount_point: String,
+    pub fs_type: String,
+    pub total_bytes: u64,
+    pub used_bytes: u64,
+    pub available_bytes: u64,
 }
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ProcessInfo {
     pub pid: u32,
     pub name: String,
+    pub status: String,
+    pub cmd: String,
     pub cpu_usage: f32,
     pub mem_usage: u64,
+    pub disk_read: u64,
+    pub disk_write: u64,
     pub user: String,
 }
