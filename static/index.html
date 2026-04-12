@@ -229,6 +229,11 @@
         </div>
         <div class="flex items-center gap-2 text-xs">
             <!-- Settings Toggle -->
+            <button onclick="window.open('/api/export?format=json','_blank')"
+                class="text-b_muted hover:text-b_text transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-b_accent_cyan rounded"
+                title="Export JSON" aria-label="Export metrics as JSON">
+                📥
+            </button>
             <button onclick="openSettings()"
                 class="text-b_muted hover:text-b_text transition-colors mr-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-b_accent_cyan rounded"
                 title="Settings" aria-label="Open settings">
@@ -761,21 +766,27 @@
             }
             fsContainer.innerHTML = fsHtml;
 
-            // GPU Panel update
-            if (data.gpu) {
+            // GPU Panel update (multi-GPU: use first GPU for main panel, show all names)
+            if (data.gpu && data.gpu.length > 0) {
+                const g = data.gpu[0];
                 el('gpu-content').classList.remove('opacity-50');
-                el('gpu-name').textContent = data.gpu.name;
+                el('gpu-name').textContent = data.gpu.map(g => g.name).join(' | ');
 
-                el('gpu-load-text').textContent = data.gpu.load + '%';
-                el('gpu-load-bar').style.width = data.gpu.load + '%';
+                el('gpu-load-text').textContent = g.load + '%';
+                el('gpu-load-bar').style.width = g.load + '%';
 
-                el('gpu-vram-perc').textContent = data.gpu.mem_load + '%';
-                el('gpu-mem-bar').style.width = data.gpu.mem_load + '%';
+                el('gpu-vram-perc').textContent = g.mem_load + '%';
+                el('gpu-mem-bar').style.width = g.mem_load + '%';
 
-                el('gpu-vram-used').textContent = formatGiB(data.gpu.vram_used);
-                el('gpu-vram-total').textContent = formatGiB(data.gpu.vram_total);
-                el('gpu-temp').textContent = data.gpu.temp + '°C';
-                el('gpu-power').textContent = data.gpu.power_w + 'W';
+                el('gpu-vram-used').textContent = formatGiB(g.vram_used);
+                el('gpu-vram-total').textContent = formatGiB(g.vram_total);
+                el('gpu-temp').textContent = g.temp + '°C';
+                el('gpu-power').textContent = g.power_w + 'W';
+            }
+
+            // Container indicator
+            if (data.is_container) {
+                el('hostname').textContent = '📦 ' + data.hostname;
             }
 
             // Processes Table
@@ -841,7 +852,7 @@
             const memPanel = el('panel-mem');
             if (memPanel) memPanel.classList.toggle('panel-alert', data.mem.used_mem / data.mem.total_mem > 0.95);
             const gpuPanel = el('panel-gpu');
-            if (gpuPanel && data.gpu) gpuPanel.classList.toggle('panel-alert', data.gpu.temp > 85);
+            if (gpuPanel && data.gpu.length > 0) gpuPanel.classList.toggle('panel-alert', data.gpu.some(g => g.temp > 85));
         };
 
         // Initialize Drag and Drop Tiling System

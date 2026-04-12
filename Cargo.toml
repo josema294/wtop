@@ -14,7 +14,7 @@ categories = ["command-line-utilities", "visualization"]
 [dependencies]
 anyhow = "1"
 axum = "0.8.8"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 futures = "0.3.32"
 nvml-wrapper = "0.12.0"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -23,7 +23,12 @@ sysinfo = "0.38.2"
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = { version = "0.1.18", features = ["sync"] }
 tracing = "0.1"
+axum-server = { version = "0.7", features = ["tls-rustls"], optional = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+default = []
+tls = ["axum-server"]
 
 [dev-dependencies]
 serde_json = "1.0"

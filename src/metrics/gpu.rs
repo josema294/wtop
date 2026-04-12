@@ -12,23 +12,31 @@ const VENDOR_INTEL: &str = "0x8086";
 const VENDOR_INTEL_ALT: &str = "0x8087";
 const VENDOR_NVIDIA: &str = "0x10de";
 
-/// Cached GPU source detected at startup.
-pub enum GpuSource {
-    Nvml(Box<Nvml>),
-    Sysfs(PathBuf),
-    None,
+/// Cached GPU sources detected at startup.
+pub struct GpuSources {
+    nvml: Option<Box<Nvml>>,
+    nvml_device_count: u32,
+    sysfs_paths: Vec<PathBuf>,
 }
 
-pub fn detect_source() -> GpuSource {
-    // Try NVIDIA NVML first
+pub fn detect_sources() -> GpuSources {
+    let mut sources = GpuSources {
+        nvml: None,
+        nvml_device_count: 0,
+        sysfs_paths: Vec::new(),
+    };
+
+    // Try NVIDIA NVML
     if let Ok(nvml) = Nvml::init() {
-        if nvml.device_by_index(0).is_ok() {
-            info!("GPU detected: NVIDIA via NVML");
-            return GpuSource::Nvml(Box::new(nvml));
+        let count = nvml.device_count().unwrap_or(0);
+        if count > 0 {
+            info!("GPU detected: {} NVIDIA device(s) via NVML", count);
+            sources.nvml_device_count = count;
+            sources.nvml = Some(Box::new(nvml));
         }
     }
 
-    // Fallback: scan sysfs for AMD/Intel
+    // Scan sysfs for AMD/Intel (these won't duplicate NVML devices if NVML succeeded for nvidia)
     if let Ok(entries) = fs::read_dir("/sys/class/drm") {
         for entry in entries.flatten() {
             let path = entry.path();
@@ -38,12 +46,16 @@ pub fn detect_source() -> GpuSource {
                 if device_path.exists() {
                     if let Ok(vendor) = fs::read_to_string(device_path.join("vendor")) {
                         let vendor = vendor.trim();
+                        // Skip NVIDIA sysfs if we already have NVML
+                        if vendor == VENDOR_NVIDIA && sources.nvml.is_some() {
+                            continue;
+                        }
                         if matches!(
                             vendor,
                             VENDOR_AMD | VENDOR_INTEL | VENDOR_INTEL_ALT | VENDOR_NVIDIA
                         ) {
                             info!("GPU detected: sysfs at {}", device_path.display());
-                            return GpuSource::Sysfs(device_path);
+                            sources.sysfs_paths.push(device_path);
                         }
                     }
                 }
@@ -51,20 +63,37 @@ pub fn detect_source() -> GpuSource {
         }
     }
 
-    warn!("No GPU detected");
-    GpuSource::None
-}
-
-pub fn collect(source: &GpuSource) -> Option<GpuInfo> {
-    match source {
-        GpuSource::Nvml(nvml) => read_nvml(nvml),
-        GpuSource::Sysfs(path) => read_sysfs(path),
-        GpuSource::None => None,
+    if sources.nvml.is_none() && sources.sysfs_paths.is_empty() {
+        warn!("No GPU detected");
     }
+
+    sources
 }
 
-fn read_nvml(nvml: &Nvml) -> Option<GpuInfo> {
-    let device = nvml.device_by_index(0).ok()?;
+pub fn collect(sources: &GpuSources) -> Vec<GpuInfo> {
+    let mut gpus = Vec::new();
+
+    // NVML GPUs
+    if let Some(nvml) = &sources.nvml {
+        for i in 0..sources.nvml_device_count {
+            if let Some(gpu) = read_nvml(nvml, i) {
+                gpus.push(gpu);
+            }
+        }
+    }
+
+    // Sysfs GPUs
+    for path in &sources.sysfs_paths {
+        if let Some(gpu) = read_sysfs(path) {
+            gpus.push(gpu);
+        }
+    }
+
+    gpus
+}
+
+fn read_nvml(nvml: &Nvml, index: u32) -> Option<GpuInfo> {
+    let device = nvml.device_by_index(index).ok()?;
     let name = device.name().unwrap_or_else(|_| "NVIDIA GPU".to_string());
     let load = device.utilization_rates().map(|u| u.gpu).unwrap_or(0);
     let mem_load = device.utilization_rates().map(|u| u.memory).unwrap_or(0);
