@@ -1,0 +1,12 @@
+[Unit]
+Description=Wtop - Web-based system monitor
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/wtop --localhost-only
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

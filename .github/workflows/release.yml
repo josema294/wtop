@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Release Binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Strip binary
+        run: strip target/release/wtop
+
+      - name: Package binary
+        run: |
+          tar czf wtop-linux-x86_64.tar.gz -C target/release wtop
+          sha256sum wtop-linux-x86_64.tar.gz > wtop-linux-x86_64.tar.gz.sha256
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            wtop-linux-x86_64.tar.gz
+            wtop-linux-x86_64.tar.gz.sha256
+            dist/wtop.1
+            dist/wtop.desktop
+            dist/wtop.svg
+            dist/wtop.service

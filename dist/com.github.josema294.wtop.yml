@@ -1,0 +1,44 @@
+app-id: com.github.josema294.wtop
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+
+command: wtop-launcher
+
+finish-args:
+  # Network access to serve HTTP
+  - --share=network
+  # Read-only access to system metrics
+  - --filesystem=/proc:ro
+  - --filesystem=/sys:ro
+
+modules:
+  - name: wtop
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/wtop/cargo
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm755 target/release/wtop /app/bin/wtop
+      - install -Dm644 dist/wtop.desktop /app/share/applications/wtop.desktop
+      - install -Dm644 dist/wtop.svg /app/share/icons/hicolor/scalable/apps/wtop.svg
+      - install -Dm644 dist/com.github.josema294.wtop.metainfo.xml /app/share/metainfo/com.github.josema294.wtop.metainfo.xml
+      - |
+        cat > /app/bin/wtop-launcher << 'LAUNCHER'
+        #!/bin/sh
+        wtop --localhost-only &
+        sleep 1
+        xdg-open http://127.0.0.1:3000
+        wait
+        LAUNCHER
+        chmod +x /app/bin/wtop-launcher
+    sources:
+      - type: archive
+        url: https://github.com/josema294/wtop/archive/refs/tags/v0.2.1.tar.gz
+        sha256: FILL_IN_AFTER_RELEASE
+      # Cargo sources would be generated with flatpak-cargo-generator

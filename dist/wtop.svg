@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="16" fill="#1a1b26"/>
+  <g transform="translate(14,28)">
+    <!-- Bars representing system metrics -->
+    <rect x="0" y="52" width="16" height="20" rx="2" fill="#9ece6a"/>
+    <rect x="20" y="32" width="16" height="40" rx="2" fill="#7dcfff"/>
+    <rect x="40" y="12" width="16" height="60" rx="2" fill="#bb9af7"/>
+    <rect x="60" y="42" width="16" height="30" rx="2" fill="#e0af68"/>
+    <rect x="80" y="22" width="16" height="50" rx="2" fill="#f7768e"/>
+  </g>
+  <text x="64" y="115" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#c0caf5">wtop</text>
+</svg>

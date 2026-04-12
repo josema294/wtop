@@ -16,7 +16,7 @@ pub struct SystemMetrics {
     pub processes: Vec<ProcessInfo>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, Default)]
 pub struct LoadAvg {
     pub one: f32,
     pub five: f32,

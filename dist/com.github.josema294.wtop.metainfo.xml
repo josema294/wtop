@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.josema294.wtop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+
+  <name>Wtop</name>
+  <summary>Web-based real-time system monitor</summary>
+
+  <description>
+    <p>
+      Wtop is a lightweight, real-time system monitor built with Rust that
+      streams live metrics to your browser. Monitor CPU, GPU, memory, network,
+      disk I/O, filesystems, and processes from any device on your network.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Multi-vendor GPU support (NVIDIA, AMD, Intel)</li>
+      <li>Per-core CPU usage, frequency, and temperature</li>
+      <li>Real CPU power via RAPL when available</li>
+      <li>Interactive process table with filtering and pinning</li>
+      <li>6 color themes including Catppuccin, Dracula, Nord, and Gruvbox</li>
+      <li>6 languages: English, Spanish, French, German, Portuguese, Chinese</li>
+      <li>Installable as a PWA on mobile devices</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://github.com/josema294/wtop</url>
+  <url type="bugtracker">https://github.com/josema294/wtop/issues</url>
+  <url type="vcs-browser">https://github.com/josema294/wtop</url>
+
+  <launchable type="desktop-id">wtop.desktop</launchable>
+
+  <provides>
+    <binary>wtop</binary>
+  </provides>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="0.2.1" date="2026-04-12">
+      <description>
+        <p>Phase 1-5: Security, modular architecture, advanced metrics, accessibility, themes, PWA, and packaging.</p>
+      </description>
+    </release>
+  </releases>
+
+  <developer id="com.github.josema294">
+    <name>Jose Maria Aranguren</name>
+  </developer>
+
+  <categories>
+    <category>System</category>
+    <category>Monitor</category>
+  </categories>
+
+  <keywords>
+    <keyword>monitor</keyword>
+    <keyword>system</keyword>
+    <keyword>cpu</keyword>
+    <keyword>gpu</keyword>
+    <keyword>memory</keyword>
+    <keyword>rust</keyword>
+  </keywords>
+</component>

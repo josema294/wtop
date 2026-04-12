@@ -1,0 +1,55 @@
+.TH WTOP 1 "2026-04-12" "wtop 0.2.1" "User Commands"
+.SH NAME
+wtop \- web-based real-time system monitor
+.SH SYNOPSIS
+.B wtop
+[\fIOPTIONS\fR]
+.SH DESCRIPTION
+.B wtop
+is a lightweight, real-time system monitor that runs as a web server.
+It streams CPU, memory, GPU, network, disk I/O, filesystem, and process
+metrics to a browser UI via Server-Sent Events (SSE).
+.PP
+Designed to be efficient enough to run alongside heavy workloads such as
+ML training or gaming, and accessible from any device on the local network.
+.SH OPTIONS
+.TP
+.BR \-p ", " \-\-port " " \fIPORT\fR
+Port to listen on (default: 3000).
+.TP
+.BR \-b ", " \-\-bind " " \fIADDRESS\fR
+Address to bind to (default: 0.0.0.0).
+.TP
+.BR \-\-localhost\-only
+Only listen on 127.0.0.1 (overrides \-\-bind).
+.TP
+.BR \-h ", " \-\-help
+Print help information.
+.TP
+.BR \-V ", " \-\-version
+Print version information.
+.SH ENVIRONMENT
+.TP
+.B RUST_LOG
+Set logging verbosity (e.g., info, debug, warn). Default: info.
+.SH EXAMPLES
+.TP
+Run on default port with local access only:
+.B wtop \-\-localhost\-only
+.TP
+Run on custom port accessible from the network:
+.B wtop \-\-port 8080
+.TP
+Bind to a specific interface:
+.B wtop \-\-bind 192.168.1.100 \-\-port 3000
+.SH GPU SUPPORT
+Wtop supports NVIDIA GPUs via NVML, and AMD/Intel GPUs via sysfs.
+GPU detection runs once at startup.
+.SH FILES
+No configuration files. Settings are stored client-side in the browser's localStorage.
+.SH BUGS
+Report bugs at https://github.com/josema294/wtop/issues
+.SH LICENSE
+AGPL-3.0-or-later
+.SH AUTHORS
+Jose Maria Aranguren <lisp-likely-smugly@duck.com>

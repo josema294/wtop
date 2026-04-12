@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 use std::fs;
 use std::time::{Duration, Instant};
 
@@ -60,8 +61,8 @@ impl RaplState {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn find_rapl_path() -> Option<String> {
-    // Try intel-rapl and amd-rapl
     for base in &[
         "/sys/class/powercap/intel-rapl:0/energy_uj",
         "/sys/class/powercap/amd-rapl:0/energy_uj",
@@ -70,6 +71,11 @@ fn find_rapl_path() -> Option<String> {
             return Some(base.to_string());
         }
     }
+    None
+}
+
+#[cfg(not(target_os = "linux"))]
+fn find_rapl_path() -> Option<String> {
     None
 }
 
@@ -109,6 +115,7 @@ pub fn collect(sys: &System, rapl: &mut RaplState) -> CpuInfo {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn read_temperatures() -> (f32, Vec<f32>) {
     let mut global_temp = 0.0;
     let mut cores_temp = Vec::new();
@@ -137,6 +144,12 @@ fn read_temperatures() -> (f32, Vec<f32>) {
     (global_temp, cores_temp)
 }
 
+#[cfg(not(target_os = "linux"))]
+fn read_temperatures() -> (f32, Vec<f32>) {
+    (0.0, Vec::new())
+}
+
+#[cfg(target_os = "linux")]
 fn read_frequencies() -> Vec<u64> {
     let mut freqs = Vec::new();
     if let Ok(contents) = fs::read_to_string("/proc/cpuinfo") {
@@ -151,6 +164,11 @@ fn read_frequencies() -> Vec<u64> {
         }
     }
     freqs
+}
+
+#[cfg(not(target_os = "linux"))]
+fn read_frequencies() -> Vec<u64> {
+    Vec::new()
 }
 
 #[cfg(test)]
