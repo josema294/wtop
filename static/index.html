@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wtop - the Rust web resource monitor</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7dcfff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Google Fonts for Terminal/Hacker look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,13 +141,84 @@
         .theme-light.bg-b_bg {
             background-color: #e5e7eb !important;
         }
+
+        /* Alert pulse animation */
+        @keyframes alert-pulse {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 12px rgba(247, 118, 142, 0.6); }
+        }
+        .panel-alert {
+            animation: alert-pulse 2s ease-in-out infinite;
+            border-color: #f7768e !important;
+        }
+
+        /* Theme: Catppuccin Mocha */
+        body.theme-catppuccin { background-color: #1e1e2e; color: #cdd6f4; }
+        .theme-catppuccin .bg-b_panel { background-color: #313244 !important; }
+        .theme-catppuccin .border-b_border { border-color: #45475a !important; }
+        .theme-catppuccin .text-b_text { color: #cdd6f4 !important; }
+        .theme-catppuccin .text-b_muted { color: #6c7086 !important; }
+        .theme-catppuccin .bg-b_bg { background-color: #1e1e2e !important; }
+        .theme-catppuccin .panel-header { background-color: #45475a33 !important; }
+        .theme-catppuccin .text-b_accent_cyan { color: #89dceb !important; }
+        .theme-catppuccin .text-b_accent_magenta { color: #cba6f7 !important; }
+        .theme-catppuccin .text-b_accent_green { color: #a6e3a1 !important; }
+        .theme-catppuccin .text-b_accent_yellow { color: #f9e2af !important; }
+        .theme-catppuccin .text-b_accent_red { color: #f38ba8 !important; }
+        .theme-catppuccin .text-b_accent_blue { color: #89b4fa !important; }
+
+        /* Theme: Dracula */
+        body.theme-dracula { background-color: #282a36; color: #f8f8f2; }
+        .theme-dracula .bg-b_panel { background-color: #44475a !important; }
+        .theme-dracula .border-b_border { border-color: #6272a4 !important; }
+        .theme-dracula .text-b_text { color: #f8f8f2 !important; }
+        .theme-dracula .text-b_muted { color: #6272a4 !important; }
+        .theme-dracula .bg-b_bg { background-color: #282a36 !important; }
+        .theme-dracula .panel-header { background-color: #6272a433 !important; }
+        .theme-dracula .text-b_accent_cyan { color: #8be9fd !important; }
+        .theme-dracula .text-b_accent_magenta { color: #bd93f9 !important; }
+        .theme-dracula .text-b_accent_green { color: #50fa7b !important; }
+        .theme-dracula .text-b_accent_yellow { color: #f1fa8c !important; }
+        .theme-dracula .text-b_accent_red { color: #ff5555 !important; }
+        .theme-dracula .text-b_accent_blue { color: #6272a4 !important; }
+
+        /* Theme: Nord */
+        body.theme-nord { background-color: #2e3440; color: #d8dee9; }
+        .theme-nord .bg-b_panel { background-color: #3b4252 !important; }
+        .theme-nord .border-b_border { border-color: #434c5e !important; }
+        .theme-nord .text-b_text { color: #eceff4 !important; }
+        .theme-nord .text-b_muted { color: #4c566a !important; }
+        .theme-nord .bg-b_bg { background-color: #2e3440 !important; }
+        .theme-nord .panel-header { background-color: #434c5e33 !important; }
+        .theme-nord .text-b_accent_cyan { color: #88c0d0 !important; }
+        .theme-nord .text-b_accent_magenta { color: #b48ead !important; }
+        .theme-nord .text-b_accent_green { color: #a3be8c !important; }
+        .theme-nord .text-b_accent_yellow { color: #ebcb8b !important; }
+        .theme-nord .text-b_accent_red { color: #bf616a !important; }
+        .theme-nord .text-b_accent_blue { color: #81a1c1 !important; }
+
+        /* Theme: Gruvbox */
+        body.theme-gruvbox { background-color: #282828; color: #ebdbb2; }
+        .theme-gruvbox .bg-b_panel { background-color: #3c3836 !important; }
+        .theme-gruvbox .border-b_border { border-color: #504945 !important; }
+        .theme-gruvbox .text-b_text { color: #ebdbb2 !important; }
+        .theme-gruvbox .text-b_muted { color: #928374 !important; }
+        .theme-gruvbox .bg-b_bg { background-color: #282828 !important; }
+        .theme-gruvbox .panel-header { background-color: #50494533 !important; }
+        .theme-gruvbox .text-b_accent_cyan { color: #83a598 !important; }
+        .theme-gruvbox .text-b_accent_magenta { color: #d3869b !important; }
+        .theme-gruvbox .text-b_accent_green { color: #b8bb26 !important; }
+        .theme-gruvbox .text-b_accent_yellow { color: #fabd2f !important; }
+        .theme-gruvbox .text-b_accent_red { color: #fb4934 !important; }
+        .theme-gruvbox .text-b_accent_blue { color: #458588 !important; }
     </style>
 </head>
 
 <body class="bg-b_bg text-b_text font-mono h-screen flex flex-col overflow-hidden text-sm">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-b_accent_cyan focus:text-b_bg focus:px-4 focus:py-2">Skip to content</a>
 
     <!-- Header -->
-    <header class="flex justify-between items-center p-3 sm:px-5 bg-b_panel/50 border-b border-b_border shrink-0">
+    <header role="banner" class="flex justify-between items-center p-3 sm:px-5 bg-b_panel/50 border-b border-b_border shrink-0">
         <div>
             <h1 class="text-b_accent_magenta text-lg font-bold inline" data-i18n="header.title">Wtop</h1>
             <span id="app-version" class="text-b_muted text-xs ml-2" data-i18n="header.rust">... (Rust)</span>
@@ -154,18 +229,18 @@
         </div>
         <div class="flex items-center gap-2 text-xs">
             <!-- Settings Toggle -->
-            <button onclick="document.getElementById('settings-modal').classList.add('show')"
-                class="text-b_muted hover:text-b_text transition-colors mr-2 cursor-pointer focus:outline-none"
-                title="Settings">
+            <button onclick="openSettings()"
+                class="text-b_muted hover:text-b_text transition-colors mr-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-b_accent_cyan rounded"
+                title="Settings" aria-label="Open settings">
                 ⚙️
             </button>
-            <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-b_accent_red shadow-[0_0_8px_#f7768e]"></div>
-            <span id="status-text" data-i18n="header.disconnected">Disconnected</span>
+            <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-b_accent_red shadow-[0_0_8px_#f7768e]" aria-hidden="true"></div>
+            <span id="status-text" role="status" aria-live="polite" data-i18n="header.disconnected">Disconnected</span>
         </div>
     </header>
 
     <!-- Main Grid -->
-    <main
+    <main id="main-content" role="main"
         class="flex-1 overflow-y-auto p-3 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-min items-stretch">
 
         <!-- CPU Panel -->
@@ -228,7 +303,7 @@
                             GiB</span>
                     </div>
                     <div class="w-full h-3 bg-b_bg rounded-full border border-b_border overflow-hidden">
-                        <div id="ram-bar" class="h-full bg-b_accent_magenta transition-all duration-300"
+                        <div id="ram-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="h-full bg-b_accent_magenta transition-all duration-300"
                             style="width: 0%"></div>
                     </div>
                 </div>
@@ -240,7 +315,7 @@
                             GiB</span>
                     </div>
                     <div class="w-full h-3 bg-b_bg rounded-full border border-b_border overflow-hidden">
-                        <div id="swap-bar" class="h-full bg-b_accent_yellow transition-all duration-300"
+                        <div id="swap-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="h-full bg-b_accent_yellow transition-all duration-300"
                             style="width: 0%"></div>
                     </div>
                 </div>
@@ -394,7 +469,16 @@
                 </div>
                 <div id="proc-count" class="text-[10px] text-b_muted">Processes</div>
             </div>
-            <div class="panel-content overflow-auto flex-1 max-h-[400px]">
+            <div class="panel-content flex flex-col flex-1">
+                <div class="px-3 py-1.5 border-b border-b_border flex gap-2 items-center">
+                    <input id="proc-filter" type="text" placeholder="Filter processes..." aria-label="Filter processes"
+                        class="flex-1 bg-b_bg border border-b_border text-b_text rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-b_accent_cyan">
+                    <label class="flex items-center gap-1 text-[10px] text-b_muted cursor-pointer whitespace-nowrap">
+                        <input id="proc-hide-idle" type="checkbox" class="rounded border-b_border text-b_accent_cyan">
+                        Hide idle
+                    </label>
+                </div>
+                <div class="overflow-auto flex-1 max-h-[400px]">
                 <table class="w-full text-left whitespace-nowrap">
                     <thead
                         class="sticky top-0 bg-b_panel text-b_accent_blue border-b border-b_border text-[10px] sm:text-xs">
@@ -423,6 +507,7 @@
                         <!-- Process Rows -->
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
 
@@ -695,26 +780,41 @@
 
             // Processes Table
             const tbody = el('proc-body');
-            el('proc-count').textContent = `${data.processes.length} Processes`;
+            const filterText = (el('proc-filter')?.value || '').toLowerCase();
+            const hideIdle = el('proc-hide-idle')?.checked || false;
 
-            // Apply Client-side sorting
-            const sortedProcesses = [...data.processes].sort((a, b) => {
-                // Pinning logic: pinned process always first
+            // Filter
+            let filtered = data.processes;
+            if (filterText) {
+                filtered = filtered.filter(p =>
+                    p.name.toLowerCase().includes(filterText) ||
+                    p.user.toLowerCase().includes(filterText) ||
+                    String(p.pid).includes(filterText)
+                );
+            }
+            if (hideIdle) {
+                filtered = filtered.filter(p => p.cpu_usage > 0.1);
+            }
+
+            el('proc-count').textContent = `${filtered.length}/${data.processes.length} Processes`;
+
+            // Sort
+            const sortedProcesses = [...filtered].sort((a, b) => {
                 if (a.pid === pinnedPid) return -1;
                 if (b.pid === pinnedPid) return 1;
-
                 let valA = a[sortKey];
                 let valB = b[sortKey];
-
-                if (typeof valA === 'string') {
-                    return valA.localeCompare(valB) * sortOrder;
-                }
+                if (typeof valA === 'string') return valA.localeCompare(valB) * sortOrder;
                 return (valA - valB) * sortOrder;
             });
 
+            // Virtual scroll: only render first 200 rows
+            const maxRows = 200;
+            const visibleProcesses = sortedProcesses.slice(0, maxRows);
+
             // Re-render only if there are changes or large update to avoid too much overhead
             let html = '';
-            for (const p of sortedProcesses) {
+            for (const p of visibleProcesses) {
                 const isPinned = p.pid === pinnedPid;
                 const rowClass = isPinned
                     ? 'bg-b_accent_magenta/20 border-b_accent_magenta/40'
@@ -734,6 +834,14 @@
                 `;
             }
             tbody.innerHTML = html;
+
+            // Alerts: pulse panel border when thresholds exceeded
+            const cpuPanel = el('panel-cpu');
+            if (cpuPanel) cpuPanel.classList.toggle('panel-alert', data.cpu.global_usage > 90);
+            const memPanel = el('panel-mem');
+            if (memPanel) memPanel.classList.toggle('panel-alert', data.mem.used_mem / data.mem.total_mem > 0.95);
+            const gpuPanel = el('panel-gpu');
+            if (gpuPanel && data.gpu) gpuPanel.classList.toggle('panel-alert', data.gpu.temp > 85);
         };
 
         // Initialize Drag and Drop Tiling System
@@ -866,10 +974,10 @@
             });
 
             // Apply Theme
-            if (cfg.theme === 'light') {
-                document.body.classList.add('theme-light');
-            } else {
-                document.body.classList.remove('theme-light');
+            const themeClasses = ['theme-light', 'theme-catppuccin', 'theme-dracula', 'theme-nord', 'theme-gruvbox'];
+            document.body.classList.remove(...themeClasses);
+            if (cfg.theme && cfg.theme !== 'default') {
+                document.body.classList.add('theme-' + cfg.theme);
             }
 
             // Apply Compact
@@ -917,8 +1025,26 @@
             if (activeContent) activeContent.classList.remove('hidden');
         };
 
+        // Settings modal open/close with focus trap
+        const openSettings = () => {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('show');
+            modal.querySelector('button, input, select').focus();
+        };
+        const closeSettings = () => {
+            closeSettings();
+        };
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSettings();
+        });
+
         // Setup after DOM is thoroughly loaded
         document.addEventListener('DOMContentLoaded', async () => {
+            // Register PWA service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
             // Fetch Locales
             await loadLocales();
 
@@ -934,16 +1060,16 @@
     </script>
 
     <!-- Settings Modal HTML -->
-    <div id="settings-modal"
+    <div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title"
         class="hidden fixed inset-0 z-50 bg-[#1a1b26]/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div
             class="bg-b_panel border border-b_border rounded-lg shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
 
             <div class="flex justify-between items-center p-4 border-b border-b_border">
-                <h2 class="text-lg font-bold text-b_accent_magenta tracking-wide" data-i18n="settings.title">⚙️ Settings
+                <h2 id="settings-title" class="text-lg font-bold text-b_accent_magenta tracking-wide" data-i18n="settings.title">⚙️ Settings
                 </h2>
-                <button onclick="document.getElementById('settings-modal').classList.remove('show')"
-                    class="text-b_muted hover:text-b_accent_red text-lg">&times;</button>
+                <button onclick="closeSettings()"
+                    class="text-b_muted hover:text-b_accent_red text-lg" aria-label="Close settings">&times;</button>
             </div>
 
             <div class="flex flex-1 overflow-hidden flex-col sm:flex-row">
@@ -1002,9 +1128,12 @@
                                 data-i18n="settings.style.theme_label">Theme</label>
                             <select id="theme-select"
                                 class="settings-input w-full bg-b_bg border border-b_border text-b_text rounded px-3 py-2 outline-none">
-                                <option value="default" data-i18n="settings.style.theme_dark">Default Dark (Tokyo Night)
-                                </option>
-                                <option value="light" data-i18n="settings.style.theme_light">Light Mode (Base)</option>
+                                <option value="default">Tokyo Night (Default)</option>
+                                <option value="light">Light Mode</option>
+                                <option value="catppuccin">Catppuccin Mocha</option>
+                                <option value="dracula">Dracula</option>
+                                <option value="nord">Nord</option>
+                                <option value="gruvbox">Gruvbox</option>
                             </select>
                         </div>
                     </div>
@@ -1035,6 +1164,10 @@
                                 class="settings-input w-full bg-b_bg border border-b_border text-b_text rounded px-3 py-2 outline-none mb-3">
                                 <option value="en">English</option>
                                 <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="pt">Português</option>
+                                <option value="zh">中文</option>
                             </select>
                         </div>
 
@@ -1047,7 +1180,7 @@
                 </div>
             </div>
             <div class="p-3 border-t border-b_border bg-[#1a1b26]/50 flex justify-end text-xs">
-                <button onclick="document.getElementById('settings-modal').classList.remove('show')"
+                <button onclick="closeSettings()"
                     class="px-4 py-2 bg-b_border hover:bg-b_muted transition-colors rounded text-b_text">Cerrar</button>
             </div>
         </div>

@@ -18,6 +18,8 @@ use crate::AppState;
 
 const INDEX_HTML: &[u8] = include_bytes!("../static/index.html");
 const LOCALES_JSON: &[u8] = include_bytes!("../static/locales.json");
+const MANIFEST_JSON: &[u8] = include_bytes!("../static/manifest.json");
+const SW_JS: &[u8] = include_bytes!("../static/sw.js");
 
 pub async fn sse_handler(
     State(state): State<Arc<AppState>>,
@@ -60,6 +62,23 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
         return Response::builder()
             .header(header::CONTENT_TYPE, "application/json")
             .body(Body::from(LOCALES_JSON))
+            .unwrap_or_else(|_| Response::new(Body::from("Internal Server Error")))
+            .into_response();
+    }
+
+    if path == "manifest.json" {
+        return Response::builder()
+            .header(header::CONTENT_TYPE, "application/manifest+json")
+            .body(Body::from(MANIFEST_JSON))
+            .unwrap_or_else(|_| Response::new(Body::from("Internal Server Error")))
+            .into_response();
+    }
+
+    if path == "sw.js" {
+        return Response::builder()
+            .header(header::CONTENT_TYPE, "application/javascript")
+            .header("service-worker-allowed", "/")
+            .body(Body::from(SW_JS))
             .unwrap_or_else(|_| Response::new(Body::from("Internal Server Error")))
             .into_response();
     }
