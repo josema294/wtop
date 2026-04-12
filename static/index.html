@@ -408,6 +408,13 @@
         // DOM Elements
         const el = (id) => document.getElementById(id);
 
+        // HTML escaping to prevent XSS from dynamic data
+        const escapeHtml = (str) => {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+
         // State
         let sortKey = 'cpu_usage';
         let sortOrder = -1; // -1 for desc, 1 for asc
@@ -623,10 +630,10 @@
                         <td class="px-3 py-1.5 text-b_accent_yellow flex items-center gap-1">
                             ${isPinned ? '📌' : ''} ${p.pid}
                         </td>
-                        <td class="px-3 py-1.5 text-b_muted">${p.user}</td>
+                        <td class="px-3 py-1.5 text-b_muted">${escapeHtml(p.user)}</td>
                         <td class="px-3 py-1.5 font-bold">${p.cpu_usage.toFixed(1)}%</td>
                         <td class="px-3 py-1.5">${formatBytes(p.mem_usage)}</td>
-                        <td class="px-3 py-1.5 text-b_accent_cyan font-semibold truncate max-w-[150px] sm:max-w-none">${p.name}</td>
+                        <td class="px-3 py-1.5 text-b_accent_cyan font-semibold truncate max-w-[150px] sm:max-w-none">${escapeHtml(p.name)}</td>
                     </tr>
                 `;
             }
